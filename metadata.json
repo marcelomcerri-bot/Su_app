@@ -1,0 +1,6 @@
+{
+  "name": "Monitoramento de Tabagistas",
+  "description": "Sistema de monitoramento clínico de tabagistas na Atenção Primária à Saúde (SUS) com acompanhamento, busca ativa e alertas.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

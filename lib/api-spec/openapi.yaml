@@ -1,0 +1,815 @@
+openapi: 3.1.0
+info:
+  # Do not change the title, if the title changes, the import paths will be broken
+  title: Api
+  version: 0.1.0
+  description: API para acompanhamento de pacientes tabagistas na APS/SUS
+servers:
+  - url: /api
+    description: Base API path
+tags:
+  - name: health
+    description: Health operations
+  - name: auth
+    description: Authentication operations
+  - name: teams
+    description: Team management
+  - name: patients
+    description: Patient management
+  - name: dashboard
+    description: Dashboard statistics
+  - name: charts
+    description: Chart data
+paths:
+  /healthz:
+    get:
+      operationId: healthCheck
+      tags: [health]
+      summary: Health check
+      description: Returns server health status
+      responses:
+        "200":
+          description: Healthy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthStatus"
+
+  /auth/login:
+    post:
+      operationId: login
+      tags: [auth]
+      summary: Login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginInput"
+      responses:
+        "200":
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthUser"
+        "401":
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /auth/logout:
+    post:
+      operationId: logout
+      tags: [auth]
+      summary: Logout
+      responses:
+        "200":
+          description: Logout successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  /auth/me:
+    get:
+      operationId: getMe
+      tags: [auth]
+      summary: Get current user
+      responses:
+        "200":
+          description: Current user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthUser"
+        "401":
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /teams:
+    get:
+      operationId: listTeams
+      tags: [teams]
+      summary: List all teams
+      responses:
+        "200":
+          description: List of teams
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Team"
+    post:
+      operationId: createTeam
+      tags: [teams]
+      summary: Create a new team
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TeamInput"
+      responses:
+        "201":
+          description: Team created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Team"
+
+  /teams/{id}:
+    patch:
+      operationId: updateTeam
+      tags: [teams]
+      summary: Update a team
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TeamInput"
+      responses:
+        "200":
+          description: Team updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Team"
+        "404":
+          description: Team not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    delete:
+      operationId: deleteTeam
+      tags: [teams]
+      summary: Delete a team (must have no patients or transfer them first)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Team deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        "400":
+          description: Team has patients; transfer them before deleting
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Team not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /teams/{id}/transfer-patients:
+    post:
+      operationId: transferTeamPatients
+      tags: [teams]
+      summary: Transfer all patients from one team to another
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TransferPatientsInput"
+      responses:
+        "200":
+          description: Patients transferred
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        "404":
+          description: Team not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /patients:
+    get:
+      operationId: listPatients
+      tags: [patients]
+      summary: List patients with optional filters
+      parameters:
+        - name: teamId
+          in: query
+          required: false
+          schema:
+            type: ["integer", "null"]
+        - name: microarea
+          in: query
+          required: false
+          schema:
+            type: ["string", "null"]
+        - name: alertType
+          in: query
+          required: false
+          schema:
+            type: ["string", "null"]
+            enum: ["red", "yellow", "none", null]
+        - name: sex
+          in: query
+          required: false
+          schema:
+            type: ["string", "null"]
+            enum: ["masculino", "feminino", null]
+        - name: search
+          in: query
+          required: false
+          schema:
+            type: ["string", "null"]
+        - name: includeInactive
+          in: query
+          required: false
+          schema:
+            type: boolean
+      responses:
+        "200":
+          description: List of patients
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Patient"
+    post:
+      operationId: createPatient
+      tags: [patients]
+      summary: Register a new patient
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PatientInput"
+      responses:
+        "201":
+          description: Patient created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Patient"
+
+  /patients/import:
+    post:
+      operationId: importPatients
+      tags: [patients]
+      summary: Import patients from CSV text
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ImportPatientsInput"
+      responses:
+        "200":
+          description: Import result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ImportPatientsResult"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /patients/{id}:
+    get:
+      operationId: getPatient
+      tags: [patients]
+      summary: Get a patient by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Patient details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Patient"
+        "404":
+          description: Patient not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    patch:
+      operationId: updatePatient
+      tags: [patients]
+      summary: Update a patient
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PatientUpdate"
+      responses:
+        "200":
+          description: Patient updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Patient"
+        "404":
+          description: Patient not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    delete:
+      operationId: deletePatient
+      tags: [patients]
+      summary: Delete a patient (admin only)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Patient deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Patient not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /dashboard:
+    get:
+      operationId: getDashboard
+      tags: [dashboard]
+      summary: Get dashboard statistics
+      parameters:
+        - name: teamId
+          in: query
+          required: false
+          schema:
+            type: ["integer", "null"]
+      responses:
+        "200":
+          description: Dashboard statistics
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DashboardStats"
+
+  /charts/sex-distribution:
+    get:
+      operationId: getSexDistribution
+      tags: [charts]
+      summary: Get patient distribution by sex
+      parameters:
+        - name: teamId
+          in: query
+          required: false
+          schema:
+            type: ["integer", "null"]
+      responses:
+        "200":
+          description: Sex distribution data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SexDistribution"
+
+  /charts/age-distribution:
+    get:
+      operationId: getAgeDistribution
+      tags: [charts]
+      summary: Get patient distribution by age group
+      parameters:
+        - name: teamId
+          in: query
+          required: false
+          schema:
+            type: ["integer", "null"]
+      responses:
+        "200":
+          description: Age distribution data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AgeDistribution"
+
+  /charts/alert-status:
+    get:
+      operationId: getAlertStatus
+      tags: [charts]
+      summary: Get patient distribution by alert status
+      parameters:
+        - name: teamId
+          in: query
+          required: false
+          schema:
+            type: ["integer", "null"]
+      responses:
+        "200":
+          description: Alert status distribution
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AlertStatusDistribution"
+
+  /charts/monthly-evolution:
+    get:
+      operationId: getMonthlyEvolution
+      tags: [charts]
+      summary: Get monthly evolution for last 12 months
+      parameters:
+        - name: teamId
+          in: query
+          required: false
+          schema:
+            type: ["integer", "null"]
+      responses:
+        "200":
+          description: Monthly evolution data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MonthlyEvolutionData"
+
+components:
+  schemas:
+    HealthStatus:
+      type: object
+      properties:
+        status:
+          type: string
+      required:
+        - status
+
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+      required:
+        - error
+
+    SuccessResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+      required:
+        - success
+
+    LoginInput:
+      type: object
+      required: [username, password]
+      properties:
+        username:
+          type: string
+        password:
+          type: string
+
+    AuthUser:
+      type: object
+      required: [id, username, role]
+      properties:
+        id:
+          type: integer
+        username:
+          type: string
+        role:
+          type: string
+          enum: [admin, user]
+
+    Team:
+      type: object
+      required: [id, name, patientCount, createdAt]
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        patientCount:
+          type: integer
+        createdAt:
+          type: string
+          format: date-time
+
+    TeamInput:
+      type: object
+      required: [name]
+      properties:
+        name:
+          type: string
+          minLength: 1
+
+    TransferPatientsInput:
+      type: object
+      required: [targetTeamId]
+      properties:
+        targetTeamId:
+          type: integer
+
+    Patient:
+      type: object
+      required:
+        - id
+        - identification
+        - age
+        - sex
+        - teamId
+        - teamName
+        - microarea
+        - smokingStatus
+        - hasOralLesion
+        - diagnosis
+        - patientStatus
+        - alertLevel
+        - registrationDate
+        - createdAt
+        - updatedAt
+      properties:
+        id:
+          type: integer
+        identification:
+          type: string
+        age:
+          type: integer
+        sex:
+          type: string
+          enum: [masculino, feminino]
+        teamId:
+          type: integer
+        teamName:
+          type: string
+        microarea:
+          type: string
+        smokingStatus:
+          type: string
+          enum: [ativo, ex-tabagista]
+        hasOralLesion:
+          type: boolean
+        lesionType:
+          type: ["string", "null"]
+        diagnosis:
+          type: string
+          enum: [nenhum, em_investigacao, confirmado]
+        lastEvaluationDate:
+          type: ["string", "null"]
+          format: date
+        registrationDate:
+          type: string
+          format: date
+        notes:
+          type: ["string", "null"]
+        patientStatus:
+          type: string
+          enum: [ativo, inativo]
+        alertLevel:
+          type: string
+          enum: [red, yellow, none]
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    PatientInput:
+      type: object
+      required:
+        - identification
+        - age
+        - sex
+        - teamId
+        - microarea
+        - smokingStatus
+        - hasOralLesion
+        - diagnosis
+        - registrationDate
+        - patientStatus
+      properties:
+        identification:
+          type: string
+          minLength: 1
+        age:
+          type: integer
+          minimum: 0
+        sex:
+          type: string
+          enum: [masculino, feminino]
+        teamId:
+          type: integer
+        microarea:
+          type: string
+          minLength: 1
+        smokingStatus:
+          type: string
+          enum: [ativo, ex-tabagista]
+        hasOralLesion:
+          type: boolean
+        lesionType:
+          type: ["string", "null"]
+        diagnosis:
+          type: string
+          enum: [nenhum, em_investigacao, confirmado]
+        lastEvaluationDate:
+          type: ["string", "null"]
+          format: date
+        registrationDate:
+          type: string
+          format: date
+        notes:
+          type: ["string", "null"]
+        patientStatus:
+          type: string
+          enum: [ativo, inativo]
+
+    PatientUpdate:
+      type: object
+      properties:
+        identification:
+          type: string
+          minLength: 1
+        age:
+          type: integer
+          minimum: 0
+        sex:
+          type: string
+          enum: [masculino, feminino]
+        teamId:
+          type: integer
+        microarea:
+          type: string
+          minLength: 1
+        smokingStatus:
+          type: string
+          enum: [ativo, ex-tabagista]
+        hasOralLesion:
+          type: boolean
+        lesionType:
+          type: ["string", "null"]
+        diagnosis:
+          type: string
+          enum: [nenhum, em_investigacao, confirmado]
+        lastEvaluationDate:
+          type: ["string", "null"]
+          format: date
+        registrationDate:
+          type: string
+          format: date
+        notes:
+          type: ["string", "null"]
+        patientStatus:
+          type: string
+          enum: [ativo, inativo]
+
+    ImportPatientsInput:
+      type: object
+      required: [csvText]
+      properties:
+        csvText:
+          type: string
+          description: Raw CSV content with header row
+
+    ImportRowError:
+      type: object
+      required: [line, message]
+      properties:
+        line:
+          type: integer
+        message:
+          type: string
+
+    ImportPatientsResult:
+      type: object
+      required: [inserted, skipped, errors]
+      properties:
+        inserted:
+          type: integer
+        skipped:
+          type: integer
+        errors:
+          type: array
+          items:
+            $ref: "#/components/schemas/ImportRowError"
+
+    DashboardStats:
+      type: object
+      required: [totalActive, redAlert, yellowAlert, noAlert]
+      properties:
+        totalActive:
+          type: integer
+        redAlert:
+          type: integer
+        yellowAlert:
+          type: integer
+        noAlert:
+          type: integer
+
+    SexDistribution:
+      type: object
+      required: [masculino, feminino]
+      properties:
+        masculino:
+          type: integer
+        feminino:
+          type: integer
+
+    AgeDistribution:
+      type: object
+      required: [under30, from30to44, from45to59, over60]
+      properties:
+        under30:
+          type: integer
+        from30to44:
+          type: integer
+        from45to59:
+          type: integer
+        over60:
+          type: integer
+
+    AlertStatusDistribution:
+      type: object
+      required: [red, yellow, none]
+      properties:
+        red:
+          type: integer
+        yellow:
+          type: integer
+        none:
+          type: integer
+
+    MonthlyEvolutionPoint:
+      type: object
+      required: [month, total]
+      properties:
+        month:
+          type: string
+        total:
+          type: integer
+      additionalProperties: true
+
+    MonthlyEvolutionData:
+      type: object
+      required: [teams, points]
+      properties:
+        teams:
+          type: array
+          items:
+            $ref: "#/components/schemas/Team"
+        points:
+          type: array
+          items:
+            $ref: "#/components/schemas/MonthlyEvolutionPoint"

@@ -1,0 +1,23 @@
+kind = "mobile"
+previewPath = "/mobile/"
+title = "Tabagistas APS — Mobile"
+version = "1.0.0"
+id = "artifacts/tabagismo-mobile"
+router = "expo-domain"
+
+[[services]]
+name = "expo"
+ensurePreviewReachable = "/status"
+paths = [ "/mobile/" ]
+localPort = 26236
+
+[services.development]
+run = "npm run dev --workspace=@workspace/tabagismo-mobile"
+
+[services.production]
+build = [ "npm", "run", "build", "--workspace=@workspace/tabagismo-mobile" ]
+run = [ "npm", "run", "serve", "--workspace=@workspace/tabagismo-mobile" ]
+
+[services.env]
+PORT = "26236"
+BASE_PATH = "/mobile/"

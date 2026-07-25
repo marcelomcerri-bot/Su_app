@@ -1,0 +1,3 @@
+- [Custom fetch credentials](custom-fetch-credentials.md) — customFetch precisa de `credentials: "include"` para cookies de sessão funcionarem no Replit proxy.
+- [DB lib rebuild required](db-lib-rebuild.md) — após mudar schema Drizzle, rodar `npm run typecheck:libs` antes do typecheck dos artifacts.
+- [Zod date coercion vs Drizzle string](zod-date-drizzle.md) — `zod.coerce.date()` produz Date; colunas Drizzle com `mode:"string"` esperam string — converter antes de inserir.

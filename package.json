@@ -1,0 +1,34 @@
+{
+  "name": "workspace",
+  "version": "0.0.0",
+  "license": "MIT",
+  "scripts": {
+    "build": "npm run build --workspaces --if-present",
+    "typecheck:libs": "tsc --build",
+    "typecheck": "npm run typecheck:libs && npm run typecheck --workspaces --if-present",
+    "lint": "npm run typecheck",
+    "dev": "cross-env NODE_ENV=development npm run build --workspace=@workspace/api-server && node --enable-source-maps artifacts/api-server/dist/index.mjs",
+    "start": "cross-env NODE_ENV=production npm run build --workspace=@workspace/api-server && node --enable-source-maps artifacts/api-server/dist/index.mjs"
+  },
+  "private": true,
+  "dependencies": {
+    "@replit/connectors-sdk": "^0.4.1"
+  },
+  "devDependencies": {
+    "cross-env": "^7.0.3",
+    "js-yaml": "^5.2.2",
+    "prettier": "^3.9.5",
+    "typescript": "~5.9.3"
+  },
+  "workspaces": [
+    "artifacts/api-server",
+    "artifacts/mockup-sandbox",
+    "artifacts/sus-tabagismo",
+    "artifacts/tabagismo-mobile",
+    "lib/api-client-react",
+    "lib/api-spec",
+    "lib/api-zod",
+    "lib/db",
+    "scripts"
+  ]
+}

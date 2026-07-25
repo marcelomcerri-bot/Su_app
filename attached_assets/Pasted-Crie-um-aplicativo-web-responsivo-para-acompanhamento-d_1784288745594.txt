@@ -1,0 +1,210 @@
+Crie um aplicativo web responsivo para acompanhamento de pacientes tabagistas na Atenção Primária à Saúde (SUS), com foco em busca ativa, monitoramento de lesões bucais e análise por equipes de saúde.
+
+O sistema não deve armazenar dados sensíveis como nome completo, CPF ou endereço completo.
+
+----------------------------------------
+
+🔐 IDENTIFICAÇÃO DO PACIENTE
+
+Cada paciente deve ser identificado por:
+- Iniciais + ano de nascimento + microárea
+Exemplo: M.S.S - 1982 - MA03
+
+----------------------------------------
+
+🏥 GESTÃO DE EQUIPES
+
+O sistema deve ter uma área de gerenciamento de equipes com as seguintes funcionalidades:
+
+- Criar novas equipes
+- Editar nome das equipes
+- Excluir equipes
+- Listar todas as equipes cadastradas
+
+Regras:
+- Não permitir excluir uma equipe que tenha pacientes vinculados sem confirmação
+- Caso exclua, permitir realocar pacientes para outra equipe
+- As equipes devem ser totalmente personalizáveis (ex: ESF Azul, Clínica A, Equipe 1, etc)
+
+----------------------------------------
+
+📋 CADASTRO DE PACIENTE
+
+Campos obrigatórios:
+
+- Identificação (texto)
+- Idade (número)
+- Sexo:
+  - masculino
+  - feminino
+- Equipe (seleção obrigatória)
+- Microárea (texto)
+
+- Status de tabagismo:
+  - ativo
+  - ex-tabagista
+
+- Presença de lesão bucal:
+  - sim
+  - não
+
+Se sim:
+- tipo de lesão (texto)
+
+- Diagnóstico:
+  - nenhum
+  - em investigação
+  - confirmado
+
+- Data da última avaliação
+- Data de cadastro
+- Observações
+
+- Status do paciente:
+  - ativo
+  - inativo
+
+----------------------------------------
+
+🚨 LÓGICA DE ALERTAS AUTOMÁTICOS
+
+🔴 Alerta vermelho:
+- paciente com lesão = sim
+- diagnóstico = nenhum
+
+🟡 Alerta amarelo:
+- paciente com mais de 365 dias sem avaliação
+
+🟢 Sem alerta:
+- demais pacientes ativos
+
+Pacientes inativos não devem entrar nos alertas nem nos gráficos.
+
+----------------------------------------
+
+🏠 DASHBOARD PRINCIPAL
+
+Exibir:
+
+- total de pacientes ativos
+- total de alerta vermelho
+- total de alerta amarelo
+- total em acompanhamento (sem alerta)
+
+Adicionar seletor de visualização:
+
+- Todas as equipes
+- Ou qualquer equipe cadastrada
+
+Os dados devem atualizar automaticamente conforme a equipe selecionada.
+
+----------------------------------------
+
+🔎 BUSCA E FILTROS
+
+Permitir filtrar por:
+
+- equipe
+- microárea
+- tipo de alerta (vermelho, amarelo, sem alerta)
+- sexo
+- busca por iniciais
+
+----------------------------------------
+
+📊 PAINEL DE GRÁFICOS (USANDO CHART.JS)
+
+Criar uma página chamada "Painel".
+
+Todos os gráficos devem responder ao filtro de equipe (visualização geral ou por equipe específica).
+
+1. Gráfico de pizza:
+- distribuição por sexo
+
+2. Gráfico de barras:
+- distribuição por faixa etária:
+  - menor que 30 anos
+  - 30 a 44 anos
+  - 45 a 59 anos
+  - 60 anos ou mais
+
+3. Gráfico de barras ou pizza:
+- situação dos pacientes:
+  - alerta vermelho
+  - alerta amarelo
+  - sem alerta
+
+----------------------------------------
+
+📈 GRÁFICO DE EVOLUÇÃO MENSAL (ÚLTIMOS 12 MESES)
+
+Criar um gráfico de linha com:
+
+Eixo X:
+- últimos 12 meses
+
+Eixo Y:
+- quantidade de pacientes
+
+Linhas:
+
+- vermelho:
+  pacientes com lesão e sem diagnóstico
+
+- amarelo:
+  pacientes com mais de 365 dias sem avaliação
+
+- verde:
+  pacientes em acompanhamento
+
+Os dados devem ser calculados automaticamente com base nos registros.
+
+----------------------------------------
+
+🗑️ GERENCIAMENTO DE PACIENTES
+
+O sistema deve permitir:
+
+- editar paciente
+- excluir paciente
+- inativar paciente
+
+Regras:
+
+- Antes de excluir, mostrar mensagem:
+  "Tem certeza que deseja excluir este paciente?"
+
+- Após exclusão:
+  atualizar dashboard, gráficos e listas automaticamente
+
+- Pacientes inativos:
+  - não aparecem nos gráficos
+  - não entram nos indicadores
+  - continuam salvos no sistema
+
+----------------------------------------
+
+🔐 SEGURANÇA (BÁSICO)
+
+- Criar um sistema simples de login com usuário e senha
+- Apenas usuários logados podem acessar o sistema
+- Apenas usuários autorizados podem excluir pacientes
+
+----------------------------------------
+
+📱 DESIGN
+
+- Interface simples, limpa e responsiva
+- Otimizado para celular (uso em UBS)
+- Navegação fácil entre:
+  - Dashboard
+  - Pacientes
+  - Painel de gráficos
+  - Equipes
+
+----------------------------------------
+
+💾 ARMAZENAMENTO
+
+- Utilizar banco de dados simples (local ou integrado)
+- Garantir persistência dos dados

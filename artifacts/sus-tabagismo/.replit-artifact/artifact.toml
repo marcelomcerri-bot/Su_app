@@ -1,0 +1,27 @@
+kind = "web"
+previewPath = "/"
+title = "Acompanhamento de Tabagistas - APS/SUS"
+version = "1.0.0"
+id = "artifacts/sus-tabagismo"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 25447
+
+[services.development]
+run = "npm run dev --workspace=@workspace/sus-tabagismo"
+
+[services.production]
+build = [ "npm", "run", "build", "--workspace=@workspace/sus-tabagismo" ]
+serve = "static"
+publicDir = "artifacts/sus-tabagismo/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "25447"
+BASE_PATH = "/"
